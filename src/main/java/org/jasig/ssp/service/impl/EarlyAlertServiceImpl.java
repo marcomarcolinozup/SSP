@@ -169,33 +169,21 @@ public class EarlyAlertServiceImpl extends // NOPMD
 		return dao;
 	}
 
-	private void earlyAlertCannotBeNull(EarlyAlert earlyAlert, RuntimeException ex ) {
-		if (earlyAlert == null) {
-			throw ex;
-		}
-	}
+	//1
+	@Autowired
+	private transient SendMessageToAdvisorService sendMessageToAdvisorService;
 
-	private void earlyAlertPersonCannotBeNull(EarlyAlert earlyAlert, RuntimeException ex ) {
-		if (earlyAlert.getPerson() == null) {
-			throw ex;
-		}
-	}
-
-	private void earlyAlertPersonCannotBeNull(	EarlyAlert earlyAlert, ValidationException ex ) throws ValidationException {
-		if (earlyAlert.getPerson() == null) {
-			throw ex;
-		}
-	}
-
-
+	//1
+	@Autowired
+	private transient EarlyAlertValidatorUtils earlyAlertValidatorUtils;
 
 	@Override
 	@Transactional(rollbackFor = { ObjectNotFoundException.class, ValidationException.class })
 	public EarlyAlert create(@NotNull final EarlyAlert earlyAlert)
 			throws ObjectNotFoundException, ValidationException {
 		// Validate objects
-		earlyAlertCannotBeNull(earlyAlert,new IllegalArgumentException("EarlyAlert must be provided."));
-		earlyAlertPersonCannotBeNull(earlyAlert, new ValidationException("EarlyAlert Student data must be provided."));
+		earlyAlertValidatorUtils.earlyAlertCannotBeNull(earlyAlert,new IllegalArgumentException("EarlyAlert must be provided."));
+		earlyAlertValidatorUtils.earlyAlertPersonCannotBeNull(earlyAlert, new ValidationException("EarlyAlert Student data must be provided."));
 
 		final Person student = earlyAlert.getPerson();
 
@@ -207,7 +195,7 @@ public class EarlyAlertServiceImpl extends // NOPMD
 					"Could not determine the Early Alert Advisor for student ID "
 							+ student.getId());
 		}
-//1
+		//1
 		if (student.getCoach() == null
 				|| assignedAdvisor.equals(student.getCoach().getId())) {
 			student.setCoach(personService.get(assignedAdvisor));
@@ -217,34 +205,9 @@ public class EarlyAlertServiceImpl extends // NOPMD
 
 		// Create alert
 		final EarlyAlert saved = getDao().save(earlyAlert);
-
-		// Send e-mail to assigned advisor (coach)
-//1
-		try {
-			sendMessageToAdvisor(saved, earlyAlert.getEmailCC());
-//1
-		} catch (final SendFailedException e) {
-			LOGGER.warn(
-					"Could not send Early Alert message to advisor.",
-					e);
-			throw new ValidationException(
-					"Early Alert notification e-mail could not be sent to advisor. Early Alert was NOT created.",
-					e);
-		}
-
+		sendMessageToAdvisorService.sendMessageToAdvisor(saved,earlyAlert.getEmailCC(),LOGGER);
 		// Send e-mail CONFIRMATION to faculty
-//1
-		try {
-			sendConfirmationMessageToFaculty(saved);
-//1
-		} catch (final SendFailedException e) {
-			LOGGER.warn(
-					"Could not send Early Alert confirmation to faculty.",
-					e);
-			throw new ValidationException(
-					"Early Alert confirmation e-mail could not be sent. Early Alert was NOT created.",
-					e);
-		}
+		sendMessageToAdvisorService.sendConfirmationMessageToFaculty(saved,LOGGER);
 
 		return saved;
 	}
@@ -435,7 +398,7 @@ public class EarlyAlertServiceImpl extends // NOPMD
 	}
 
 	private void ensureValidAlertedOnPersonStateOrFail(Person person)
-			throws ObjectNotFoundException, ValidationException {
+			throws ObjectNotFoundException, ValidationException, SendFailedException {
 //1
 		if ( person.getObjectStatus() != ObjectStatus.ACTIVE ) {
 			person.setObjectStatus(ObjectStatus.ACTIVE);
@@ -477,7 +440,7 @@ public class EarlyAlertServiceImpl extends // NOPMD
 
 	/**
 	 * Send e-mail ({@link Message}) to the assigned advisor for the student.
-	 * 
+	 *
 	 * @param earlyAlert
 	 *            Early Alert
 	 * @param emailCC
@@ -486,6 +449,7 @@ public class EarlyAlertServiceImpl extends // NOPMD
 	 * @throws SendFailedException
 	 * @throws ValidationException
 	 */
+	/**
 	private void sendMessageToAdvisor(@NotNull final EarlyAlert earlyAlert, // NOPMD
 			final String emailCC) throws ObjectNotFoundException,
 			SendFailedException, ValidationException {
@@ -497,7 +461,7 @@ public class EarlyAlertServiceImpl extends // NOPMD
 
 		final SubjectAndBody subjAndBody = messageTemplateService
 				.createEarlyAlertAdvisorConfirmationMessage(fillTemplateParameters(earlyAlert));
-		
+
 		Set<String> watcherEmailAddresses = new HashSet<String>(earlyAlert.getPerson().getWatcherEmailAddresses());
 //1
 		if(emailCC != null && !emailCC.isEmpty())
@@ -568,14 +532,14 @@ public class EarlyAlertServiceImpl extends // NOPMD
 				}
 			}
 		}
-	}
+	}**/
 
 	@Override
 	public void sendMessageToStudent(@NotNull final EarlyAlert earlyAlert)
 			throws ObjectNotFoundException, SendFailedException,
 			ValidationException {
-		earlyAlertCannotBeNull(earlyAlert,new IllegalArgumentException("EarlyAlert was missing."));
-		earlyAlertPersonCannotBeNull(earlyAlert,new IllegalArgumentException("EarlyAlert.Person is missing."));
+		earlyAlertValidatorUtils.earlyAlertCannotBeNull(earlyAlert,new IllegalArgumentException("EarlyAlert was missing."));
+		earlyAlertValidatorUtils.earlyAlertPersonCannotBeNull(earlyAlert,new IllegalArgumentException("EarlyAlert.Person is missing."));
 
 
 		final Person person = earlyAlert.getPerson();
@@ -601,6 +565,7 @@ public class EarlyAlertServiceImpl extends // NOPMD
 	 * @throws SendFailedException
 	 * @throws ValidationException
 	 */
+	/**
 	private void sendConfirmationMessageToFaculty(final EarlyAlert earlyAlert)
 			throws ObjectNotFoundException, SendFailedException,
 			ValidationException {
@@ -631,13 +596,15 @@ public class EarlyAlertServiceImpl extends // NOPMD
 			LOGGER.info("Message {} created for EarlyAlert {}", message, earlyAlert);
 		}
 	}
+**/
+
 
 	@Override
 	public Map<String, Object> fillTemplateParameters(
 			@NotNull final EarlyAlert earlyAlert) {
 
-		earlyAlertCannotBeNull(earlyAlert,new IllegalArgumentException("EarlyAlert was missing."));
-		earlyAlertPersonCannotBeNull(earlyAlert,new IllegalArgumentException("EarlyAlert.Person is missing."));
+		earlyAlertValidatorUtils.earlyAlertCannotBeNull(earlyAlert,new IllegalArgumentException("EarlyAlert was missing."));
+		earlyAlertValidatorUtils.earlyAlertPersonCannotBeNull(earlyAlert,new IllegalArgumentException("EarlyAlert.Person is missing."));
 
 		//1
 		if (earlyAlert.getCreatedBy() == null) {

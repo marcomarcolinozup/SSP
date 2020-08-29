@@ -145,12 +145,14 @@ public class JournalEntryServiceImpl
 //1
  		 for (BaseStudentReportTO person:persons) {
 	//1
-			 if (!map.containsKey(person.getSchoolId()) && StringUtils.isNotBlank(person.getCoachSchoolId())
-			 	&& personSearchForm.getJournalSourceIds() ==null
-				&& getDao().getJournalCountForPersonForJournalSourceIds(person.getId(), personSearchForm.getJournalSourceIds()) != 0) {
-					 final JournalCaseNotesStudentReportTO entry = new JournalCaseNotesStudentReportTO(person);
-					 personsWithJournalEntries.add(entry);
-					 map.put(entry.getSchoolId(), entry);
+			 if (
+			 		!map.containsKey(person.getSchoolId())
+					&& StringUtils.isNotBlank(person.getCoachSchoolId())
+			 		&& personSearchForm.getJournalSourceIds() ==null
+					&& getDao().getJournalCountForPersonForJournalSourceIds(person.getId(), personSearchForm.getJournalSourceIds()) != 0) {
+						 final JournalCaseNotesStudentReportTO entry = new JournalCaseNotesStudentReportTO(person);
+						 personsWithJournalEntries.add(entry);
+						 map.put(entry.getSchoolId(), entry);
 			 }
 
  		 }
@@ -161,7 +163,7 @@ public class JournalEntryServiceImpl
 	private static void sortByStudentName(List<JournalCaseNotesStudentReportTO> toSort) {
 		Collections.sort(toSort,  new Comparator<JournalCaseNotesStudentReportTO>() {
 	        public int compare(JournalCaseNotesStudentReportTO p1, JournalCaseNotesStudentReportTO p2) {
-	        	
+
 	        	int value = p1.getLastName().compareToIgnoreCase(p2.getLastName());
 	        	//1
 	        	if(value != 0)
@@ -171,6 +173,7 @@ public class JournalEntryServiceImpl
 	        	//1
 		       if(value != 0)
         		 return value;
+
 		       //1
 		       if(p1.getMiddleName() == null && p2.getMiddleName() == null)
 		    	   return 0;
@@ -180,6 +183,10 @@ public class JournalEntryServiceImpl
 		       //1
 		       if(p2.getMiddleName() == null)
 		    	   return 1;
+
+
+
+
 		       return p1.getMiddleName().compareToIgnoreCase(p2.getMiddleName());
 	        }
 	    });
