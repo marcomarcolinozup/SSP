@@ -55,13 +55,13 @@ import java.util.UUID;
 public class JournalEntryServiceImpl
 		extends AbstractRestrictedPersonAssocAuditableService<JournalEntry>
 		implements JournalEntryService {
-
+//1
 	@Autowired
 	private transient JournalEntryDao dao;
-
+//1
 	@Autowired
 	private transient PersonProgramStatusService personProgramStatusService;
-	
+//1
 	@Autowired
 	private transient PersonDao personDao;
 
@@ -89,8 +89,10 @@ public class JournalEntryServiceImpl
 	private void checkForTransition(final JournalEntry journalEntry)
 			throws ObjectNotFoundException, ValidationException {
 		// search for a JournalStep that indicates a transition
+		//1
 		for (final JournalEntryDetail detail : journalEntry
 				.getJournalEntryDetails()) {
+			//1
 			if (detail.getJournalStepJournalStepDetail().getJournalStep()
 					.isUsedForTransition()) {
 				// is used for transition, so attempt to set program status
@@ -129,26 +131,30 @@ public class JournalEntryServiceImpl
  	public List<JournalCaseNotesStudentReportTO> getJournalCaseNoteStudentReportTOsFromCriteria(JournalStepSearchFormTO personSearchForm, SortingAndPaging sAndP) throws ObjectNotFoundException{
  		 final List<JournalCaseNotesStudentReportTO> personsWithJournalEntries = dao.getJournalCaseNoteStudentReportTOsFromCriteria(personSearchForm, sAndP);
  		 final Map<String, JournalCaseNotesStudentReportTO> map = new HashMap<String, JournalCaseNotesStudentReportTO>();
-
+//1
  		 for(JournalCaseNotesStudentReportTO entry:personsWithJournalEntries){
  			 map.put(entry.getSchoolId(), entry);
  		 }
 
  		 final SortingAndPaging personSAndP = SortingAndPaging.createForSingleSortAll(ObjectStatus.ACTIVE, "lastName", "DESC") ;
  		 final PagingWrapper<BaseStudentReportTO> persons = personDao.getStudentReportTOs(personSearchForm, personSAndP);
- 		
+ 	//1
  		 if (persons == null) {
  			 return personsWithJournalEntries;
  		 }
-
+//1
  		 for (BaseStudentReportTO person:persons) {
+	//1
 			 if (!map.containsKey(person.getSchoolId()) && StringUtils.isNotBlank(person.getCoachSchoolId())) {
 				 boolean addStudent = true;
+		//1
 				 if (personSearchForm.getJournalSourceIds()!=null) {
+			//1
 					if (getDao().getJournalCountForPersonForJournalSourceIds(person.getId(), personSearchForm.getJournalSourceIds()) == 0) {
 						addStudent = false;
 					}
 				 }
+			 //1
 			 	 if (addStudent) {
 					 final JournalCaseNotesStudentReportTO entry = new JournalCaseNotesStudentReportTO(person);
 					 personsWithJournalEntries.add(entry);
@@ -167,17 +173,22 @@ public class JournalEntryServiceImpl
 	        	
 	        	int value = p1.getLastName().compareToIgnoreCase(
 	     	                    p2.getLastName());
+	        	//1
 	        	if(value != 0)
 	        		return value;
 	        	
 	        	value = p1.getFirstName().compareToIgnoreCase(
  	                    p2.getFirstName());
+	        	//1
 		       if(value != 0)
         		 return value;
+		       //1
 		       if(p1.getMiddleName() == null && p2.getMiddleName() == null)
 		    	   return 0;
+		       //1
 		       if(p1.getMiddleName() == null)
 		    	   return -1;
+		       //1
 		       if(p2.getMiddleName() == null)
 		    	   return 1;
 		       return p1.getMiddleName().compareToIgnoreCase(
