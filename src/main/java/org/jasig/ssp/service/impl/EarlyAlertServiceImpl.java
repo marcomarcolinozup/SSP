@@ -494,6 +494,7 @@ public class EarlyAlertServiceImpl extends // NOPMD
 		earlyAlertPersonCannotBeNull(earlyAlert,new IllegalArgumentException("EarlyAlert Person is missing."));
 
 		final Person person = earlyAlert.getPerson().getCoach();
+
 		final SubjectAndBody subjAndBody = messageTemplateService
 				.createEarlyAlertAdvisorConfirmationMessage(fillTemplateParameters(earlyAlert));
 		

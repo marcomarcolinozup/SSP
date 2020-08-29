@@ -131,39 +131,30 @@ public class JournalEntryServiceImpl
  	public List<JournalCaseNotesStudentReportTO> getJournalCaseNoteStudentReportTOsFromCriteria(JournalStepSearchFormTO personSearchForm, SortingAndPaging sAndP) throws ObjectNotFoundException{
  		 final List<JournalCaseNotesStudentReportTO> personsWithJournalEntries = dao.getJournalCaseNoteStudentReportTOsFromCriteria(personSearchForm, sAndP);
  		 final Map<String, JournalCaseNotesStudentReportTO> map = new HashMap<String, JournalCaseNotesStudentReportTO>();
-//1
- 		 for(JournalCaseNotesStudentReportTO entry:personsWithJournalEntries){
- 			 map.put(entry.getSchoolId(), entry);
- 		 }
-
  		 final SortingAndPaging personSAndP = SortingAndPaging.createForSingleSortAll(ObjectStatus.ACTIVE, "lastName", "DESC") ;
  		 final PagingWrapper<BaseStudentReportTO> persons = personDao.getStudentReportTOs(personSearchForm, personSAndP);
  	//1
  		 if (persons == null) {
  			 return personsWithJournalEntries;
  		 }
+
+		//1
+		for(JournalCaseNotesStudentReportTO entry: personsWithJournalEntries){
+			map.put(entry.getSchoolId(), entry);
+		}
 //1
  		 for (BaseStudentReportTO person:persons) {
 	//1
-			 if (!map.containsKey(person.getSchoolId()) && StringUtils.isNotBlank(person.getCoachSchoolId())) {
-				 boolean addStudent = true;
-		//1
-				 if (personSearchForm.getJournalSourceIds()!=null) {
-			//1
-					if (getDao().getJournalCountForPersonForJournalSourceIds(person.getId(), personSearchForm.getJournalSourceIds()) == 0) {
-						addStudent = false;
-					}
-				 }
-			 //1
-			 	 if (addStudent) {
+			 if (!map.containsKey(person.getSchoolId()) && StringUtils.isNotBlank(person.getCoachSchoolId())
+			 	&& personSearchForm.getJournalSourceIds() ==null
+				&& getDao().getJournalCountForPersonForJournalSourceIds(person.getId(), personSearchForm.getJournalSourceIds()) != 0) {
 					 final JournalCaseNotesStudentReportTO entry = new JournalCaseNotesStudentReportTO(person);
 					 personsWithJournalEntries.add(entry);
 					 map.put(entry.getSchoolId(), entry);
-				 }
- 			}
+			 }
+
  		 }
 		 sortByStudentName(personsWithJournalEntries);
-
  		 return personsWithJournalEntries;
  	}
  		 
@@ -171,14 +162,12 @@ public class JournalEntryServiceImpl
 		Collections.sort(toSort,  new Comparator<JournalCaseNotesStudentReportTO>() {
 	        public int compare(JournalCaseNotesStudentReportTO p1, JournalCaseNotesStudentReportTO p2) {
 	        	
-	        	int value = p1.getLastName().compareToIgnoreCase(
-	     	                    p2.getLastName());
+	        	int value = p1.getLastName().compareToIgnoreCase(p2.getLastName());
 	        	//1
 	        	if(value != 0)
 	        		return value;
 	        	
-	        	value = p1.getFirstName().compareToIgnoreCase(
- 	                    p2.getFirstName());
+	        	value = p1.getFirstName().compareToIgnoreCase(p2.getFirstName());
 	        	//1
 		       if(value != 0)
         		 return value;
@@ -191,8 +180,7 @@ public class JournalEntryServiceImpl
 		       //1
 		       if(p2.getMiddleName() == null)
 		    	   return 1;
-		       return p1.getMiddleName().compareToIgnoreCase(
-	                    p2.getMiddleName());
+		       return p1.getMiddleName().compareToIgnoreCase(p2.getMiddleName());
 	        }
 	    });
 	}
